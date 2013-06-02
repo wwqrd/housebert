@@ -5,7 +5,7 @@
 
 byte recvCount;
 char password[16] = "123DOOP";
-char msg;
+char msgChar;
 bool allGood;
 
 void unlock (int time) {
@@ -23,8 +23,8 @@ void blink () {
 bool checkPassword () {
     allGood = true;
     for (byte i = 0; i < rf12_len; ++i) {
-        msg = (int) rf12_data[i];
-        if(msg != password[i]) {
+        msgChar = (int) rf12_data[i];
+        if(msgChar != password[i]) {
             allGood = false;
         }
     }

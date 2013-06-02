@@ -33,15 +33,13 @@ void setup () {
 
 void loop () {
     if(digitalRead(BUTTON_PIN) == 1) {
-        digitalWrite(LED_PIN, 1);
         button = true;
     }
 
     rf12_recvDone();
 
     if(rf12_canSend() && button == true) {
+        blink();
         unlock();
-        delay(100);
-        digitalWrite(LED_PIN, 0);
     }
 }
