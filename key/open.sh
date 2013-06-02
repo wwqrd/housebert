@@ -1,0 +1,1 @@
+curl -X POST -d "password=123doop" http://192.168.1.26/unlock --header "Content-Type:application/json"

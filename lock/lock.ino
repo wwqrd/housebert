@@ -1,7 +1,25 @@
 #include <JeeLib.h>
 
-#define RELAY_PIN 1
-#define LED_PIN 2
+/*
+       RF12
+
+    []      []
+D4  []      []  D7
+    []      []
+    []      []
+    []      []
+
+    []      []
+    []      []
+    []      []
+    []      []
+    []      []
+
+       FTDI
+*/
+
+#define RELAY_PIN 7
+#define LED_PIN 4
 
 byte recvCount;
 char password[16] = "123DOOP";
@@ -9,14 +27,16 @@ char msgChar;
 bool allGood;
 
 void unlock (int time) {
+    digitalWrite(LED_PIN, 1);
     digitalWrite(RELAY_PIN, 1);
     delay(time);
     digitalWrite(RELAY_PIN, 0);
+    digitalWrite(LED_PIN, 0);
 }
 
 void blink () {
     digitalWrite(LED_PIN, 1);
-    delay(100);
+    delay(150);
     digitalWrite(LED_PIN, 0);
 }
 
@@ -38,6 +58,7 @@ void setup () {
     pinMode(LED_PIN, OUTPUT);
     rf12_initialize(1, RF12_868MHZ);
     rf12_encrypt(RF12_EEPROM_EKEY);
+    blink();
 }
 
 void loop () {
@@ -45,7 +66,6 @@ void loop () {
         if(checkPassword()) {
             // Unlock
             Serial.println("YEY!");
-            blink();
             unlock(5000);
         } else {
             // Alarms!
