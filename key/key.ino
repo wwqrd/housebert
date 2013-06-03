@@ -4,13 +4,19 @@
 #define BUTTON_PIN 5
 #define LED_PIN 6
 
+// mac address
+static byte mymac[] = { 0x74,0x69,0x69,0x2D,0x30,0x31 };
+// ethernet interface ip address
+static byte myip[] = { 192,168,1,203 };
+// gateway ip address
+static byte gwip[] = { 192,168,1,1 };
+// password
 char password[] = "123DOOP";
+
 int button = false;
 bool wasOpened = false;
 long unlocked = 0;
 long now = 0;
-static byte mymac[] = { 0x74,0x69,0x69,0x2D,0x30,0x31 };
-static byte myip[] = { 192,168,1,203 };
 byte Ethernet::buffer[500];
 BufferFiller bfill;
 
@@ -82,9 +88,16 @@ void setup () {
     if (ether.begin(sizeof Ethernet::buffer, mymac) == 0) {
         Serial.println( "Failed to access Ethernet controller");
     }
-    if (!ether.dhcpSetup()) {
-        Serial.println("DHCP failed");
-    }
+
+    // Static
+    // if (!ether.staticSetup(myip, gwip)) {
+    //     Serial.println("Static setup failed");
+    // }
+
+    // dhcp
+    // if (!ether.dhcpSetup()) {
+    //     Serial.println("DHCP failed");
+    // }
 
     ether.printIp("IP:  ", ether.myip);
     ether.printIp("GW:  ", ether.gwip);  
