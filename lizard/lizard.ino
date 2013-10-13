@@ -14,7 +14,7 @@ typedef struct {
   long reading;
 } Payload;
 
-// Not sure if there is a good reason for this to be global, I suspect not.
+// FIXME: Global because I don't know how to pass a struct
 Payload payload;
 
 // Power
@@ -24,10 +24,20 @@ Payload payload;
 #define CT_TURNS_RATIO 1350
 #define BURDEN_R 18
 
+// FIXME: Global because I can't calculate in a constant
+double CAL_I;
+double RATIO_I;
+
 void blink() {
     digitalWrite(LED_PIN, HIGH);
     delay(100);
     digitalWrite(LED_PIN, LOW);
+}
+
+void calibrate() {
+    // Could these two be tidied up a little?
+    CAL_I = CT_TURNS_RATIO / BURDEN_R;
+    RATIO_I = CAL_I * (SUPPLY_V / 1023.0 * 1000.0);
 }
 
 void setupPins() {
@@ -51,6 +61,10 @@ void setup() {
 
     Serial.println("Initialising rf...");
     setupRf();
+    blink();
+
+    Serial.println("Calibrating...");
+    calibrate();
     blink();
 
     Serial.println("Setup complete.");
@@ -95,11 +109,7 @@ double sampleIRMS() {
       sumI += sqI;
     }
 
-    // Could these two be tidied up a little?
-    double calI = CT_TURNS_RATIO / BURDEN_R;
-    double ratioI = calI * (SUPPLY_V / 1023.0 * 1000.0);
-
-    iRMS = ratioI * sqrt(sumI / SAMPLES);
+    iRMS = RATIO_I * sqrt(sumI / SAMPLES);
 
     return iRMS;
 }
