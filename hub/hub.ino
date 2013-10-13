@@ -56,7 +56,7 @@ static word ping() {
     bfill = ether.tcpOffset();
     bfill.emit_p(PSTR(
         "$F"
-        "iamhub"),
+        "{\"hub\": true}"),
         json_OK);
     return bfill.position();
 }
@@ -82,9 +82,9 @@ void setupNetwork() {
     }
 
     // Get IP via DHCP
-    /*if (!ether.dhcpSetup()) {*/
-        /*Serial.println("DHCP failed");*/
-    /*}*/
+    // if (!ether.dhcpSetup()) {
+    //     Serial.println("DHCP failed");
+    // }
 
     ether.printIp("IP:  ", ether.myip);
     ether.printIp("GW:  ", ether.gwip);
@@ -128,7 +128,7 @@ void loop () {
             if (strncmp("reading ", data, 8) == 0) {
                 Serial.println( "Requested a reading" );
                 ether.httpServerReply(api());
-            } else if (strncmp("areyouhub? ", data, 11) == 0) {
+            } else if (strncmp("who ", data, 4) == 0) {
                 Serial.println( "Received a ping." );
                 ether.httpServerReply(ping());
             } else {
