@@ -11,7 +11,7 @@ byte node;
 
 typedef struct {
   byte node;
-  long reading;
+  long value;
 } Payload;
 
 // FIXME: Global because I don't know how to pass a struct
@@ -116,12 +116,12 @@ double sampleIRMS() {
 
 void send() {
     Serial.println("Sending message:");
-    Serial.println(payload.reading);
+    Serial.println(payload.value);
     rf12_sendStart(0, &payload, sizeof payload);
 }
 
 void loop() {
-    payload.reading = sampleIRMS();
+    payload.value = sampleIRMS();
 
     rf12_recvDone();
 

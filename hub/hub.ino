@@ -12,12 +12,16 @@ static byte gwip[] = { 192,168,0,1 };
 
 typedef struct {
   byte node;
-  long reading;
+  long value;
 } Payload;
 
-long d0 = 0;
-long d1 = 0;
-long reading;
+typedef struct {
+  byte node;
+  long time;
+  long value;
+} Snapshot;
+
+Snapshot slots[];
 
 byte Ethernet::buffer[500];
 BufferFiller bfill;
@@ -34,19 +38,18 @@ const char json_OK[] PROGMEM =
     "Content-Type: application/json\r\n"
     "Pragma: no-cache\r\n\r\n";
 
-static word api() {
-    d1 = millis();
-    long dT = d1 - d0;
+static word api(int slot) {
+    long dT = millis - slots[slot].time;
 
     bfill = ether.tcpOffset();
     bfill.emit_p(PSTR(
         "$F"
         "{"
-        "    \"reading\": $D,"
+        "    \"value\": $D,"
         "    \"dT\": $D"
         "}"),
         json_OK,
-        (word) reading,
+        (word) slots[slot].value,
         (word) dT/1000);
 
     return bfill.position();
@@ -125,9 +128,11 @@ void loop () {
 
         if (strncmp("GET /", data, 5) == 0) {
             data += 5;
-            if (strncmp("reading ", data, 8) == 0) {
-                Serial.println( "Requested a reading" );
-                ether.httpServerReply(api());
+            if (strncmp("slot/", data, 8) == 0) {
+                // Pattern match here.
+                int slot = 0
+                Serial.println( "Requested a slot" );
+                ether.httpServerReply(api(slot));
             } else if (strncmp("who ", data, 4) == 0) {
                 Serial.println( "Received a ping." );
                 ether.httpServerReply(ping());
@@ -139,12 +144,15 @@ void loop () {
     }
 
     if (rf12_recvDone() && rf12_crc == 0 && rf12_len == sizeof (Payload)) {
+        Snapshot snapshot;
         const Payload* payload = (const Payload*) rf12_data;
         Serial.print((word) payload->node);
         Serial.print(": ");
-        Serial.println((word) payload->reading);
-        reading = payload->reading;
-        d0 = millis();
+        Serial.println((word) payload->value);
+        snapshot.time = millis();
+        snapshot.node = payload->node;
+        snapshot.value = payload->value;
+        slots[(int) payload->node] = snapshot;
     }
 
 }
