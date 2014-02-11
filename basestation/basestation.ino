@@ -4,20 +4,12 @@
 #define BUTTON_PIN 5
 #define LED_PIN 6
 
-// supertweet.net username:password in base64
-#define KEY "aWFtbG9ja2JlcnQ6MmI1NCJjMSZjNA=="
-#define API_URL "/1.1/statuses/update.json"
-
 // mac address
 static byte mymac[] = { 0x74,0x69,0x69,0x2D,0x30,0x31 };
 // // ethernet interface ip address
-// static byte myip[] = { 192,168,1,203 };
+static byte myip[] = { 192,168,1,203 };
 // // gateway ip address
-// static byte gwip[] = { 192,168,1,1 };
-// password
-char password[] = "123DOOP";
-
-char website[] PROGMEM = "api.supertweet.net";
+static byte gwip[] = { 192,168,1,1 };
 
 int button = false;
 bool wasOpened = false;
@@ -26,6 +18,10 @@ long now = 0;
 Stash stash;
 byte Ethernet::buffer[500];
 BufferFiller bfill;
+byte recvCount;
+char password[16] = "123DOOP";
+char msgChar;
+bool allGood;
 
 void unlock () {
     wasOpened = true;
@@ -81,34 +77,21 @@ static word ping() {
     return bfill.position();
 }
 
-static void sendToTwitter () {
-    // generate two fake values as payload - by using a separate stash,
-    // we can determine the size of the generated message ahead of time
-    const byte *buf = ether.myip;
-
-    byte sd = stash.create();
-    stash.print("status=@domakesaythings i am lockbert my IP is: ");
-
-    for (byte i = 0; i < 4; ++i) {
-        Serial.print( buf[i], DEC );
-        if (i < 3)
-            stash.print('.');
+bool checkPassword () {
+    allGood = true;
+    for (byte i = 0; i < rf12_len; ++i) {
+        msgChar = (int) rf12_data[i];
+        if(msgChar != password[i]) {
+            allGood = false;
+        }
     }
-    stash.println();
-    stash.save();
-
-    // generate the header with payload - note that the stash size is used,
-    // and that a "stash descriptor" is passed in as argument using "$H"
-    Stash::prepare(PSTR(API_URL), website, PSTR(KEY), stash.size(), sd);
-
-    // send the packet - this also releases all stash buffers once done
-    ether.tcpSend();
+    return allGood;
 }
 
 void setup () {
     // Welcome
     Serial.begin(57600);
-    Serial.println("\nIAmAKeyBert");
+    Serial.println("\nIAmAHouseBert");
 
     // Set up pins
     pinMode(BUTTON_PIN, INPUT);
@@ -130,13 +113,8 @@ void setup () {
     }
 
     // Static
-    // if (!ether.staticSetup(myip, gwip)) {
-    //     Serial.println("Static setup failed");
-    // }
-
-    // DHCP
-    if (!ether.dhcpSetup()) {
-        Serial.println("DHCP failed");
+    if (!ether.staticSetup(myip, gwip)) {
+        Serial.println("Static setup failed");
     }
 
     ether.printIp("IP:  ", ether.myip);
@@ -151,11 +129,6 @@ void setup () {
 }
 
 void loop () {
-    // if (ether.dhcpExpired()) {
-    //     Serial.println("Acquiring DHCP lease again");
-    //     ether.dhcpSetup();
-    // }
-
     if(digitalRead(BUTTON_PIN) != HIGH) {
         button = true;
     }
@@ -188,9 +161,18 @@ void loop () {
         }
     }
 
-    rf12_recvDone();
+    if (rf12_recvDone() && rf12_crc == 0) {
+        if(checkPassword()) {
+            // Unlock
+            Serial.println("YEY!");
+            unlock(5000);
+        } else {
+            // Alarms!
+            Serial.println("NOT YEY!");
+        }
+    }
 
-    if(rf12_canSend() && button == true) {
+    if(rf12_canSend()) {
         unlock();
     }
 }

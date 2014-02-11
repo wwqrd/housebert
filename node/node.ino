@@ -18,13 +18,28 @@ D4  []      []  D7
        FTDI
 */
 
-#define RELAY_PIN 7
+#define INDUCTOR_PIN 7
 #define LED_PIN 4
 
 byte recvCount;
 char password[16] = "123DOOP";
 char msgChar;
 bool allGood;
+int button = false;
+bool wasOpened = false;
+long unlocked = 0;
+long now = 0;
+Stash stash;
+byte Ethernet::buffer[500];
+BufferFiller bfill;
+
+void unlock () {
+    wasOpened = true;
+    unlocked = millis();
+    rf12_sendStart(0, password, sizeof password);
+    blink();
+    button = false;
+}
 
 void unlock (int time) {
     digitalWrite(LED_PIN, 1);
