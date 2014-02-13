@@ -3,8 +3,8 @@
 // Hardware (Jeenode ports)
 // Digital P1
 #define LED_PIN 4
-// Analog  P4
-#define CT_PIN 3
+// Analog  P2
+#define CT_PIN 1
 
 // RF
 byte node;
@@ -122,15 +122,17 @@ void send() {
 
 void loop() {
     payload.value = sampleIRMS();
+    Serial.println((float) payload.value);
+    Serial.println(analogRead(CT_PIN));
 
-    rf12_recvDone();
+    /*rf12_recvDone();*/
 
-    if(rf12_canSend()) {
-        send();
-        blink();
-    }
+    /*if(rf12_canSend()) {*/
+        /*send();*/
+        /*blink();*/
+    /*}*/
 
-    delay(5000);
+    delay(5);
 
 }
 

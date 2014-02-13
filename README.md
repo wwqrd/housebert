@@ -1,17 +1,16 @@
-# Lizard
+# Housebert
 
-`Lizard` energy monitor Arduino sketch for jeelib compatible boards
+Energy monitor Arduino sketch for jeelib compatible boards.
 
-## Hub
+The setup consists of two boards, one running the `basestation` software, and the other running the `sensornode` software.
 
-The hub receives data over RFM12B and makes it available via a JSON API, it's
-not particularly smart about it.
+## Base Station
 
-It runs on an Arduino (specifically, jeenode) compatible board with an RFM12B
-and an ENC28J60.
+The base station receives data over RFM12B and makes it available via a JSON API, it's not particularly smart about it.
 
-I'm using a [nanode "gateway"](http://www.nanode.eu/), with the extra jeeport
-header soldered on for a [RFM12B board](http://jeelabs.net/projects/hardware/wiki/RFM12B_Board)
+It runs on an Arduino (specifically, jeenode) compatible board with an RFM12B and an ENC28J60.
+
+I'm using a [nanode "gateway"](http://www.nanode.eu/), with the extra jeeport header soldered on for a [RFM12B board](http://jeelabs.net/projects/hardware/wiki/RFM12B_Board)
 
 ### Setup
 
@@ -23,17 +22,9 @@ at `192.168.0.1`. You may need to change these for your particular network.
     uncomment the DHCP setup.
 3. Upload!
 4. Visit `http://192.168.0.1/who`, you should recieve the response:
-    `{"hub":true}`
+    `{"housebert":true}`
 
-## Lizard
+## Sensor Node
 
-TODO.
-
-### Setup
-
-TODO.
-
-#### Calbration
-
-TODO.
+TODO
 
