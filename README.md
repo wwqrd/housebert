@@ -2,15 +2,19 @@
 
 Energy monitor Arduino sketch for jeelib compatible boards.
 
-The setup consists of two boards, one running the `basestation` software, and the other running the `sensornode` software.
+The setup consists of two boards, one running the `base_station` software, and the other running the `sensor_node` software.
 
-## Base Station
+## Requirements
+
+1. Two jeenode compatible boards, with RFM12B circuits.
+  - The __base station__ also requires an ENC28J60
+  - The __sensor node__ requires a breakout board for your CT sensor.
+
+I'm using a [nanode "gateway"](http://www.nanode.eu/), with the extra jeeport header soldered on for a [RFM12B board](http://jeelabs.net/projects/hardware/wiki/RFM12B_Board), and a plain old jeenode with a bespoke breakout board for the CT sensor.
+
+## Base Station (base\_station/base\_station.ino)
 
 The base station receives data over RFM12B and makes it available via a JSON API, it's not particularly smart about it.
-
-It runs on an Arduino (specifically, jeenode) compatible board with an RFM12B and an ENC28J60.
-
-I'm using a [nanode "gateway"](http://www.nanode.eu/), with the extra jeeport header soldered on for a [RFM12B board](http://jeelabs.net/projects/hardware/wiki/RFM12B_Board)
 
 ### Setup
 
@@ -24,7 +28,7 @@ at `192.168.0.1`. You may need to change these for your particular network.
 4. Visit `http://192.168.0.1/who`, you should recieve the response:
     `{"housebert":true}`
 
-## Sensor Node
+## Sensor Node (sensor\_node/sensor\_node.ino
 
 TODO
 
