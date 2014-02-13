@@ -2,7 +2,7 @@
 
 Energy monitor Arduino sketch for jeelib compatible boards.
 
-The setup consists of two boards, one running the `base_station` software, and the other running the `sensor_node` software.
+The setup consists of two boards, one running the __base station__ software, and the other running the __sensor node__ software.
 
 ## Requirements
 
@@ -28,7 +28,7 @@ at `192.168.0.1`. You may need to change these for your particular network.
 4. Visit `http://192.168.0.1/who`, you should recieve the response:
     `{"housebert":true}`
 
-## Sensor Node (sensor\_node/sensor\_node.ino
+## Sensor Node (sensor\_node/sensor\_node.ino)
 
 TODO
 
