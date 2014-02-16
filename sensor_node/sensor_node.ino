@@ -1,9 +1,10 @@
 #include <JeeLib.h>
+#include <EmonLib.h>
 
 // Hardware (Jeenode ports)
 // Digital P1
 #define LED_PIN 4
-// Analog  P2
+// Analog  P3 (2) P2 (1)
 #define CT_PIN 1
 
 // RF
@@ -14,19 +15,13 @@ typedef struct {
   long value;
 } Payload;
 
-// FIXME: Global because I don't know how to pass a struct
-Payload payload;
-
 // Power
-#define SAMPLES 1000
+#define SAMPLES 1350
 #define VRMS 230
-#define SUPPLY_V 3.3
 #define CT_TURNS_RATIO 1350
 #define BURDEN_R 18
 
-// FIXME: Global because I can't calculate in a constant
-double CAL_I;
-double RATIO_I;
+EnergyMonitor energyMonitor;
 
 void blink() {
     digitalWrite(LED_PIN, HIGH);
@@ -34,10 +29,9 @@ void blink() {
     digitalWrite(LED_PIN, LOW);
 }
 
-void calibrate() {
-    // Could these two be tidied up a little?
-    CAL_I = CT_TURNS_RATIO / BURDEN_R;
-    RATIO_I = CAL_I * (SUPPLY_V / 1023.0 * 1000.0);
+void initializeEnergyMonitor() {
+    double ical = CT_TURNS_RATIO / BURDEN_R;
+    energyMonitor.current(CT_PIN, ical);
 }
 
 void setupPins() {
@@ -47,92 +41,48 @@ void setupPins() {
 void setupRf() {
     rf12_initialize(1, RF12_868MHZ);
     rf12_encrypt(RF12_EEPROM_EKEY);
-    payload.node = rf12_config();
+    node = rf12_config();
 }
 
 void setup() {
 
-    Serial.begin(57600);
-    Serial.println("`Lizard` is setting up...");
+    Serial.begin(9600);
+    Serial.println("HOUSEBERT[Sensor node] is setting up...");
 
     Serial.println("Initialising pins...");
     setupPins();
     blink();
 
-    Serial.println("Initialising rf...");
+    Serial.println("Initialising RF12...");
     setupRf();
     blink();
 
-    Serial.println("Calibrating...");
-    calibrate();
+    Serial.println("Initializing EnergyMonitor...");
+    initializeEnergyMonitor();
     blink();
 
     Serial.println("Setup complete.");
 }
 
-double sampleIRMS() {
-    /*
-     * Theory
-     * ======
-     * Some stuff on working on calI, etc:
-     * http://openenergymonitor.org/emon/buildingblocks/ct-and-ac-power-adaptor-installation-and-calibration-theory
-     *
-     * Code based (nearly exactly) on:
-     * https://github.com/openenergymonitor/EmonLib/blob/master/EmonLib.cpp
-     *
-     * No idea what is actually going on here, renamed the variables to attempt to
-     * make it clearer, believe the `0.996` constant is something to do with
-     * accuracy/phaseli, and the `1000.0` constant is something to do with changing
-     * units.
-     */
+void loop() {
 
-    double sampleI0;
-    double sampleI1 = 0;
-    double filteredI0;
-    double filteredI1 = 0;
-    double dSample;
-    double sqI;
-    double sumI = 0;
-    double iRMS;
+    Payload payload;
+    double irms = energyMonitor.calcIrms(SAMPLES);
+    double apparentPower = irms * VRMS;
 
-    for(int n = 0; n < SAMPLES; n++) {
-      sampleI0 = sampleI1;
-      sampleI1 = analogRead(CT_PIN);
-      filteredI0 = filteredI1;
-      dSample = sampleI1 - sampleI0;
-      filteredI1 = 0.996 * (filteredI0 + dSample);
+    payload.node = node;
+    payload.value = apparentPower;
 
-      // Root-mean-square method current
-      // 1) square current values
-      sqI = filteredI1 * filteredI1;
-      // 2) sum
-      sumI += sqI;
+    rf12_recvDone();
+
+    if(rf12_canSend()) {
+      Serial.println("Apparent power:");
+      Serial.println(payload.value);
+      rf12_sendStart(0, &payload, sizeof payload);
+      blink();
     }
 
-    iRMS = RATIO_I * sqrt(sumI / SAMPLES);
-
-    return iRMS;
-}
-
-void send() {
-    Serial.println("Sending message:");
-    Serial.println(payload.value);
-    rf12_sendStart(0, &payload, sizeof payload);
-}
-
-void loop() {
-    payload.value = sampleIRMS();
-    Serial.println((float) payload.value);
-    Serial.println(analogRead(CT_PIN));
-
-    /*rf12_recvDone();*/
-
-    /*if(rf12_canSend()) {*/
-        /*send();*/
-        /*blink();*/
-    /*}*/
-
-    delay(5);
+    delay(2000);
 
 }
 
